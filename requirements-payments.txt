@@ -1,0 +1,19 @@
+# File Organizer - Payment Integration Dependencies
+# Add these to your requirements.txt or install with:
+# pip install -r requirements-payments.txt
+
+# Stripe integration
+stripe>=7.0.0
+
+# Webhook server
+flask>=2.0.0
+
+# Email sending (choose one or more)
+# Option 1: Gmail/SMTP (built into Python, no extra package needed)
+# Option 2: SendGrid
+# sendgrid>=6.0.0
+# Option 3: AWS SES
+# boto3>=1.20.0
+
+# Environment variable loading
+python-dotenv>=1.0.0

@@ -1,13 +1,14 @@
 """
-License dialog for File Organizer Pro features.
+License dialog for SortMind Pro features.
 """
 import logging
+import os
 from pathlib import Path
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QLineEdit, QMessageBox, QFrame, QSpacerItem, QSizePolicy,
-    QGroupBox, QGridLayout
+    QGroupBox, QGridLayout, QInputDialog
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QDesktopServices
@@ -15,11 +16,17 @@ from PyQt6.QtCore import QUrl
 
 try:
     from ...core.license_manager import get_license_manager, LicenseManager
+    from ...core.stripe_integration import create_checkout_url, STRIPE_AVAILABLE
 except ImportError:
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).parent.parent.parent))
     from core.license_manager import get_license_manager, LicenseManager
+    try:
+        from core.stripe_integration import create_checkout_url, STRIPE_AVAILABLE
+    except ImportError:
+        STRIPE_AVAILABLE = False
+        create_checkout_url = None
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +50,7 @@ class LicenseDialog(QDialog):
         self._setup_ui()
         self._update_status()
         
-        self.setWindowTitle("License - File Organizer")
+        self.setWindowTitle("License - SortMind")
         self.resize(500, 400)
         
         logger.info("LicenseDialog opened")
@@ -167,7 +174,12 @@ class LicenseDialog(QDialog):
         layout.addWidget(pricing_group)
         
         # Info text
-        info = QLabel("💡 Purchase via GitHub Sponsors. License key will be emailed within 24 hours.")
+        if STRIPE_AVAILABLE:
+            info_text = "💡 Secure checkout via Stripe. License key emailed immediately after purchase."
+        else:
+            info_text = "💡 Purchase via GitHub Sponsors. License key will be emailed within 24 hours."
+        
+        info = QLabel(info_text)
         info.setAlignment(Qt.AlignmentFlag.AlignCenter)
         info.setStyleSheet("color: #737373; font-size: 11px;")
         info.setWordWrap(True)
@@ -261,17 +273,50 @@ class LicenseDialog(QDialog):
             self.error_label.setText(f"❌ {message}")
     
     def _open_purchase_url(self, tier: str):
-        """Open purchase URL in browser."""
-        url = self.license_mgr.get_purchase_url()
-        QDesktopServices.openUrl(QUrl(url))
-        
-        QMessageBox.information(
-            self,
-            "Purchase",
-            f"Opening GitHub Sponsors...\n\n"
-            f"Select the '{tier.title()}' tier and complete the sponsorship. "
-            f"Your license key will be emailed within 24 hours."
-        )
+        """Open Stripe checkout in browser."""
+        if STRIPE_AVAILABLE and create_checkout_url:
+            # Get customer email (optional)
+            email, ok = QInputDialog.getText(
+                self,
+                "Email",
+                "Enter your email (optional - for receipt):"
+            )
+            
+            if not ok:
+                return
+            
+            # Create Stripe checkout session
+            checkout_url, error = create_checkout_url(tier, email if email else "")
+            
+            if error:
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Failed to create checkout: {error}\n\n"
+                    "Please try again or contact support."
+                )
+                return
+            
+            # Open checkout URL
+            QDesktopServices.openUrl(QUrl(checkout_url))
+            
+            QMessageBox.information(
+                self,
+                "Checkout Started",
+                f"Complete your purchase in the browser.\n\n"
+                f"Your license key will be emailed to you immediately after payment."
+            )
+        else:
+            # Fallback to old method if Stripe not configured
+            url = self.license_mgr.get_purchase_url()
+            QDesktopServices.openUrl(QUrl(url))
+            
+            QMessageBox.information(
+                self,
+                "Purchase",
+                f"Opening purchase page...\n\n"
+                f"Complete your purchase and your license key will be emailed to you."
+            )
 
 
 class UpgradePromptWidget(QFrame):
