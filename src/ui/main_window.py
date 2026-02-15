@@ -1,5 +1,5 @@
 """
-Main application window for AI File Organizer.
+Main application window for SortMind.
 Enhanced with world-class UI features: empty states, skeleton loading,
 improved keyboard navigation, and comprehensive tooltips.
 """

@@ -20,7 +20,7 @@ class LLMConfigDialog(QDialog):
         self.selected_backend = None
         self.config_data = {}
         
-        self.setWindowTitle("AI File Organizer - LLM Setup")
+        self.setWindowTitle("SortMind - LLM Setup")
         self.setMinimumWidth(500)
         self._setup_ui()
     
@@ -31,7 +31,7 @@ class LLMConfigDialog(QDialog):
         
         # Header
         if self.first_run:
-            header = QLabel("Welcome to AI File Organizer!")
+            header = QLabel("Welcome to SortMind!")
             header.setStyleSheet("font-size: 18px; font-weight: bold;")
             layout.addWidget(header)
             

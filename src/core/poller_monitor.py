@@ -222,7 +222,7 @@ class PollerMonitor:
                 import subprocess
                 subprocess.run([
                     "osascript", "-e",
-                    f'display notification "{message[:100]}..." with title "File Organizer Alert"'
+                    f'display notification "{message[:100]}..." with title "SortMind Alert"'
                 ], check=False)
             except:
                 pass
@@ -272,7 +272,7 @@ class PollerMonitor:
                 pass
         
         summary = f"""
-📊 File Organizer Payment Monitor Summary
+📊 SortMind Payment Monitor Summary
 ═══════════════════════════════════════════
 
 Total Licenses Generated: {total_licenses}

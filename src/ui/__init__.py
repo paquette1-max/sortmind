@@ -1,4 +1,4 @@
-"""UI package for AI File Organizer."""
+"""UI package for SortMind."""
 
 from .main_window import MainWindow
 from .app_controller import AppController

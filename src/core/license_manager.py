@@ -1,5 +1,5 @@
 """
-License management system for File Organizer Pro features.
+License management system for SortMind Pro features.
 
 Supports:
 - License key validation (local + optional GitHub Sponsors API)
@@ -51,7 +51,7 @@ class LicenseInfo:
 
 class LicenseManager:
     """
-    Manages license keys for File Organizer Pro features.
+    Manages license keys for SortMind Pro features.
     
     Features:
     - Local license file storage

@@ -1,4 +1,4 @@
-"""LLM handler implementations for AI File Organizer."""
+"""LLM handler implementations for SortMind."""
 import logging
 from typing import Optional, Dict, Any
 from pathlib import Path

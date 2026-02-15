@@ -1,4 +1,4 @@
-"""Widgets package for AI File Organizer UI."""
+"""Widgets package for SortMind UI."""
 
 from .results_table import ResultsTable
 from .progress_dialog import ProgressDialog

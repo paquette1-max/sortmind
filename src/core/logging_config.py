@@ -1,4 +1,4 @@
-"""Logging configuration for AI File Organizer."""
+"""Logging configuration for SortMind."""
 import logging
 from pathlib import Path
 

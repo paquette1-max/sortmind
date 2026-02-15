@@ -1,4 +1,4 @@
-"""Dialogs package for AI File Organizer UI."""
+"""Dialogs package for SortMind UI."""
 
 from .settings_dialog import SettingsDialog
 from .rules_dialog import RulesManagerDialog

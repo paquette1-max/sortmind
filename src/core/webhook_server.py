@@ -87,7 +87,7 @@ def create_app() -> Flask:
     def index():
         """Root endpoint."""
         return jsonify({
-            "service": "File Organizer License Server",
+            "service": "SortMind License Server",
             "version": "1.0.0",
             "endpoints": {
                 "webhook": "/webhook/stripe",
