@@ -100,10 +100,10 @@ class LicenseManager:
         Initialize license manager.
         
         Args:
-            config_dir: Directory to store license file (default: ~/.config/file-organizer)
+            config_dir: Directory to store license file (default: ~/.config/sortmind)
         """
         if config_dir is None:
-            config_dir = Path.home() / ".config" / "file-organizer"
+            config_dir = Path.home() / ".config" / "sortmind"
         
         self.config_dir = config_dir
         self.config_dir.mkdir(parents=True, exist_ok=True)

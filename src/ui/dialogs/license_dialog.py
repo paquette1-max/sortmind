@@ -55,7 +55,7 @@ class LicenseDialog(QDialog):
         layout.setContentsMargins(30, 30, 30, 30)
         
         # Header
-        header = QLabel("🗂️ File Organizer Pro")
+        header = QLabel("🧠 SortMind Pro")
         header_font = QFont("", 18, QFont.Weight.Bold)
         header.setFont(header_font)
         header.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -255,7 +255,7 @@ class LicenseDialog(QDialog):
             QMessageBox.information(
                 self,
                 "License Activated",
-                f"✅ {message}\n\nThank you for supporting File Organizer!"
+                f"✅ {message}\n\nThank you for supporting SortMind!"
             )
         else:
             self.error_label.setText(f"❌ {message}")

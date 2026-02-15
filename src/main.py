@@ -1,5 +1,5 @@
 """
-Main entry point for the AI File Organizer application.
+Main entry point for SortMind - AI-powered document organization.
 """
 import sys
 import logging
@@ -43,11 +43,11 @@ def main():
         )
     
     logger = logging.getLogger(__name__)
-    logger.info("Starting AI File Organizer application")
+    logger.info("Starting SortMind application")
     
     # Create QApplication
     app = QApplication(sys.argv)
-    app.setApplicationName("AI File Organizer")
+    app.setApplicationName("SortMind")
     app.setApplicationVersion("1.0.0")
     
     # Load and apply dark theme stylesheet (Vesper UI Specialist)

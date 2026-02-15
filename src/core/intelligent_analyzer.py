@@ -343,7 +343,7 @@ class IntelligentDocumentAnalyzer:
         
         # Learning system
         self.enable_learning = enable_learning
-        self.learning_db_path = learning_db_path or Path.home() / ".file_organizer" / "learning.json"
+        self.learning_db_path = learning_db_path or Path.home() / ".sortmind" / "learning.json"
         self.learned_patterns = self._load_learned_patterns()
         
         logger.info(f"IntelligentDocumentAnalyzer initialized")

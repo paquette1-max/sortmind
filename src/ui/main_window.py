@@ -35,7 +35,7 @@ class MainWindow(QMainWindow):
     
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("AI File Organizer")
+        self.setWindowTitle("SortMind")
         self.resize(1400, 900)
         
         # Store references to UI components
@@ -463,7 +463,7 @@ class MainWindow(QMainWindow):
         help_menu.addSeparator()
         
         about_action = QAction("&About", self)
-        about_action.setStatusTip("About AI File Organizer")
+        about_action.setStatusTip("About SortMind")
         about_action.triggered.connect(self._show_about)
         help_menu.addAction(about_action)
     
@@ -560,17 +560,18 @@ class MainWindow(QMainWindow):
         """Show about dialog with helpful information."""
         QMessageBox.about(
             self,
-            "About AI File Organizer",
-            "<h2>AI File Organizer v1.0</h2>"
-            "<p>Intelligently organize your files using AI-powered analysis.</p>"
+            "About SortMind",
+            "<h2>🧠 SortMind v1.0</h2>"
+            "<p>AI-powered document organization. 100% local. Privacy-first.</p>"
             "<p>Features:</p>"
             "<ul>"
-            "<li>AI-powered file categorization</li>"
+            "<li>AI-powered document analysis</li>"
+            "<li>Intelligent file naming</li>"
             "<li>Duplicate file detection</li>"
             "<li>Custom organization rules</li>"
             "<li>Safe undo operations</li>"
             "</ul>"
-            "<p>© 2026</p>"
+            "<p>© 2026 <a href='https://github.com/ash-works'>ash-works</a></p>"
         )
     
     def _show_shortcuts(self):
