@@ -30,18 +30,23 @@ class ScanWorker(QThread):
         try:
             self.scanned_files = []
             
-            # Recursive file scan
-            for i, file_path in enumerate(self.directory.rglob("*")):
+            # Non-recursive scan - only files in the selected directory
+            # Use glob("*") instead of rglob("*") to avoid scanning subdirectories
+            logger.info(f"Scanning directory (non-recursive): {self.directory}")
+            
+            for i, file_path in enumerate(self.directory.glob("*")):
                 if file_path.is_file():
                     self.scanned_files.append(file_path)
-                    self.progress.emit(i + 1, len(self.scanned_files) + 100)  # Estimate
+                    # Emit progress every 10 files to reduce UI updates
+                    if i % 10 == 0:
+                        self.progress.emit(len(self.scanned_files), len(self.scanned_files) + 10)
                 
                 # Check if thread should stop
                 if self.isInterruptionRequested():
                     logger.info("Scan interrupted by user")
                     return
             
-            logger.info(f"Scan complete: {len(self.scanned_files)} files found")
+            logger.info(f"Scan complete: {len(self.scanned_files)} files found in {self.directory}")
             self.finished.emit(self.scanned_files)
             
         except Exception as e:
@@ -69,7 +74,10 @@ class AnalysisWorker(QThread):
         """Run LLM analysis in background thread with parallelization."""
         try:
             if not self.llm_handler:
-                raise ValueError("LLM handler not provided")
+                # Fall back to rule-based analysis without LLM
+                logger.info("No LLM handler - using rule-based analysis")
+                self._run_rule_based_analysis()
+                return
             
             # Use ThreadPoolExecutor for parallel analysis
             completed_count = 0
@@ -108,21 +116,54 @@ class AnalysisWorker(QThread):
             logger.error(error_msg)
             self.error.emit(error_msg)
     
+    def _run_rule_based_analysis(self):
+        """Run rule-based analysis without LLM (fallback mode)."""
+        # Simple extension-based categorization
+        extension_categories = {
+            '.pdf': 'documents', '.txt': 'documents', '.doc': 'documents', '.docx': 'documents',
+            '.xls': 'spreadsheets', '.xlsx': 'spreadsheets', '.csv': 'spreadsheets',
+            '.ppt': 'presentations', '.pptx': 'presentations',
+            '.jpg': 'images', '.jpeg': 'images', '.png': 'images', '.gif': 'images', '.bmp': 'images',
+            '.mp3': 'audio', '.wav': 'audio', '.flac': 'audio', '.aac': 'audio',
+            '.mp4': 'video', '.avi': 'video', '.mkv': 'video', '.mov': 'video',
+            '.py': 'code', '.js': 'code', '.html': 'code', '.css': 'code', '.java': 'code', '.cpp': 'code',
+            '.zip': 'archives', '.rar': 'archives', '.7z': 'archives', '.tar': 'archives', '.gz': 'archives',
+            '.exe': 'applications', '.dmg': 'applications', '.pkg': 'applications', '.app': 'applications',
+        }
+        
+        completed_count = 0
+        for file_path in self.files:
+            if self.isInterruptionRequested():
+                logger.info("Rule-based analysis interrupted by user")
+                return
+            
+            ext = file_path.suffix.lower()
+            category = extension_categories.get(ext, 'uncategorized')
+            
+            result = {
+                "file_path": str(file_path),
+                "category": category,
+                "suggested_name": file_path.name,
+                "confidence": 0.6,  # Lower confidence for rule-based
+                "reasoning": f"Categorized by file extension ({ext}) - rule-based mode (no LLM)",
+                "should_organize": True
+            }
+            
+            completed_count += 1
+            self.progress.emit(completed_count, len(self.files), str(file_path))
+            self.result.emit(result)
+        
+        logger.info(f"Rule-based analysis complete: {len(self.files)} files categorized")
+        self.finished.emit()
+    
     def _analyze_single_file(self, file_path: Path) -> Optional[dict]:
         """Analyze a single file (runs in thread pool worker)."""
         try:
             if not self.llm_handler:
                 return None
             
-            # Mock analysis if handler is not properly configured
-            result = {
-                "file_path": str(file_path),
-                "category": "documents",
-                "suggested_name": file_path.name,
-                "confidence": 0.85,
-                "reasoning": f"Analyzed {file_path.suffix} file"
-            }
-            return result
+            # Use LLM handler for analysis
+            return self.llm_handler.analyze_file(file_path)
         
         except Exception as e:
             logger.error(f"Failed to analyze {file_path}: {e}")

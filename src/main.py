@@ -50,6 +50,18 @@ def main():
     app.setApplicationName("AI File Organizer")
     app.setApplicationVersion("1.0.0")
     
+    # Load and apply dark theme stylesheet (Vesper UI Specialist)
+    try:
+        qss_path = Path(__file__).parent / "ui" / "dark_theme.qss"
+        if qss_path.exists():
+            with open(qss_path, "r") as f:
+                app.setStyleSheet(f.read())
+            logger.info("Dark theme loaded from Vesper UI Specialist")
+        else:
+            logger.warning(f"Dark theme not found at {qss_path}")
+    except Exception as e:
+        logger.warning(f"Failed to load dark theme: {e}")
+    
     # Create and run main window
     try:
         controller = AppController(config)

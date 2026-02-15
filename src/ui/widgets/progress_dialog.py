@@ -30,11 +30,12 @@ class ProgressDialog(QDialog):
         
         # Title label
         self.title_label = QLabel("Processing...")
-        self.title_label.setStyleSheet("font-weight: bold; font-size: 12px;")
+        self.title_label.setObjectName("progressTitle")
         layout.addWidget(self.title_label)
         
         # Progress bar
         self.progress_bar = QProgressBar()
+        self.progress_bar.setObjectName("progressBar")
         self.progress_bar.setMinimum(0)
         self.progress_bar.setMaximum(100)
         self.progress_bar.setValue(0)
@@ -42,12 +43,12 @@ class ProgressDialog(QDialog):
         
         # Status label
         self.status_label = QLabel("")
-        self.status_label.setStyleSheet("color: #666; font-size: 10px;")
+        self.status_label.setObjectName("progressStatus")
         layout.addWidget(self.status_label)
         
         # File label
         self.file_label = QLabel("")
-        self.file_label.setStyleSheet("color: #666; font-size: 10px;")
+        self.file_label.setObjectName("progressFile")
         self.file_label.setWordWrap(True)
         layout.addWidget(self.file_label)
         

@@ -1,0 +1,4 @@
+llm:
+  backend: ollama
+  model: llama3.2:3b
+  url: http://localhost:11434

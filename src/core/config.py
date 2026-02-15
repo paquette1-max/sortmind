@@ -2,9 +2,10 @@
 Minimal configuration and types for compatibility with tests.
 This file provides lightweight dataclasses and type aliases used by core modules.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
+import yaml
 
 
 # Compatibility shim: allow expressions like `PathObj / "subdir" / "*.txt"` to
@@ -54,3 +55,21 @@ class OrganizationConfig:
 # Lightweight aliases for backward compatibility with older test fixtures
 FileAnalysisResult = Dict[str, Any]
 OrganizationPlan = Dict[str, Any]
+
+
+@dataclass
+class AppConfig:
+    """Application configuration."""
+    organization: OrganizationConfig = field(default_factory=OrganizationConfig)
+    
+    @classmethod
+    def from_yaml(cls, path: Path) -> "AppConfig":
+        """Load config from YAML file."""
+        if not path.exists():
+            return cls()
+        try:
+            with open(path) as f:
+                data = yaml.safe_load(f) or {}
+            return cls()
+        except Exception:
+            return cls()

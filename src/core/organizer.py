@@ -4,6 +4,7 @@ File organizer - executes file organization operations safely.
 import shutil
 import logging
 import uuid
+import re
 from pathlib import Path
 from typing import List, Dict, Optional, Callable
 from dataclasses import dataclass, field
@@ -13,6 +14,69 @@ from .config import OrganizationConfig, FileAnalysisResult, OrganizationPlan
 from .scanner import ScannedFile
 
 logger = logging.getLogger(__name__)
+
+
+def sanitize_path_component(name: str) -> str:
+    """
+    Sanitize a path component to prevent path traversal attacks.
+    
+    Removes or replaces characters that could escape the intended directory
+    or that are invalid in file paths.
+    
+    Args:
+        name: The path component to sanitize (filename or directory name)
+        
+    Returns:
+        Sanitized path component safe for use in file operations
+    """
+    if not name:
+        return 'unnamed'
+    
+    # Replace path traversal sequences
+    name = name.replace('..', '_')
+    name = name.replace('/', '_')
+    name = name.replace('\\', '_')
+    
+    # Remove or replace invalid characters
+    # Keep alphanumeric, spaces, hyphens, underscores, and dots
+    name = re.sub(r'[<>:"|?*\x00-\x1f]', '_', name)
+    
+    # Strip leading/trailing dots and spaces (problematic on Windows)
+    name = name.strip('. ')
+    
+    # Ensure name isn't empty after sanitization
+    if not name:
+        return 'unnamed'
+    
+    return name
+
+
+def validate_safe_path(base_dir: Path, target_path: Path) -> bool:
+    """
+    Validate that target_path is within base_dir to prevent path traversal.
+    
+    Args:
+        base_dir: The allowed base directory
+        target_path: The path to validate
+        
+    Returns:
+        True if target_path is within base_dir, False otherwise
+    """
+    try:
+        # Resolve both paths to absolute, normalized paths
+        base = base_dir.resolve()
+        target = target_path.resolve()
+        
+        # Check if target is within base directory
+        try:
+            # Use relative_to which raises ValueError if not a subpath
+            target.relative_to(base)
+            return True
+        except ValueError:
+            return False
+    except (OSError, ValueError) as e:
+        logger.warning(f"Path validation error: {e}")
+        return False
 
 
 @dataclass
@@ -119,9 +183,18 @@ class FileOrganizer:
                 logger.debug(f"Skipping {key} due to low confidence {confidence}")
                 continue
 
+            # SANITIZE category and filename to prevent path traversal
+            safe_category = sanitize_path_component(suggested_category) if suggested_category else 'uncategorized'
+            safe_filename = sanitize_path_component(suggested_filename) if suggested_filename else Path(key).name
+
             # Build destination Path
-            category_path = Path(base_directory) / (suggested_category or 'uncategorized')
-            destination = category_path / (suggested_filename or Path(key).name)
+            category_path = Path(base_directory) / safe_category
+            destination = category_path / safe_filename
+
+            # VALIDATE that destination is within base_directory
+            if not validate_safe_path(Path(base_directory), destination):
+                logger.error(f"Path traversal detected for {key} -> {destination}")
+                continue
 
             # Preserve extension
             src_path = Path(key)
