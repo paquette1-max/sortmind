@@ -31,7 +31,14 @@ from .dialogs.rules_dialog import RulesManagerDialog
 from .dialogs.duplicates_dialog import DuplicatesDialog
 from .dialogs.llm_config_dialog import LLMConfigDialog
 from .dialogs.review_dialog import DocumentReviewDialog
+from .dialogs.license_dialog import LicenseDialog, UpgradePromptWidget
 from .workers import ScanWorker, AnalysisWorker, OrganizeWorker, BackupWorker
+
+# Import license manager
+try:
+    from ..core.license_manager import get_license_manager
+except ImportError:
+    from core.license_manager import get_license_manager
 
 import logging
 
@@ -104,6 +111,7 @@ class AppController:
         self.main_window.rules_requested.connect(self.on_rules_requested)
         self.main_window.duplicates_requested.connect(self.on_duplicates_requested)
         self.main_window.refresh_requested.connect(self.on_refresh_requested)
+        self.main_window.license_requested.connect(self.on_license_requested)
         
         # Empty state signals
         self.empty_state_widget.action_triggered.connect(self._on_empty_state_action)
@@ -858,6 +866,47 @@ For PDF support:
                 "No Directory",
                 "Select a directory first to refresh."
             )
+    
+    def on_license_requested(self):
+        """Handle license dialog request."""
+        dialog = LicenseDialog(self.main_window)
+        dialog.license_activated.connect(self._on_license_activated)
+        dialog.exec()
+    
+    def _on_license_activated(self):
+        """Handle license activation."""
+        # Refresh UI to reflect new license status
+        self._update_license_status()
+        logger.info("License activated, UI updated")
+    
+    def _update_license_status(self):
+        """Update status bar with license information."""
+        try:
+            license_mgr = get_license_manager()
+            status = license_mgr.get_license_status()
+            
+            if status["status"] == "licensed":
+                tier = status["tier"].title()
+                self.main_window.set_status(f"🔓 {tier} License Active")
+            elif status["status"] == "trial":
+                remaining = status.get("trial_remaining", 0)
+                self.main_window.set_status(f"🧪 Trial: {remaining} AI uses remaining")
+            else:
+                self.main_window.set_status("🔒 Free Version - Upgrade for AI features")
+        except Exception as e:
+            logger.warning(f"Could not update license status: {e}")
+    
+    def _show_upgrade_prompt(self):
+        """Show upgrade prompt if not licensed."""
+        try:
+            license_mgr = get_license_manager()
+            status = license_mgr.get_license_status()
+            
+            if status["status"] != "licensed":
+                # Could add a persistent banner here
+                logger.info("Showing upgrade prompt")
+        except Exception as e:
+            logger.warning(f"Could not show upgrade prompt: {e}")
     
     def run(self):
         """Start the application."""

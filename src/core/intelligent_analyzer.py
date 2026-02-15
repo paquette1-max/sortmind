@@ -13,6 +13,7 @@ from datetime import datetime
 import json
 
 from .content_extractor import ContentExtractor, ExtractedContent, DocumentType
+from .license_manager import get_license_manager, LicenseManager
 
 logger = logging.getLogger(__name__)
 
@@ -401,6 +402,10 @@ class IntelligentDocumentAnalyzer:
         """
         logger.info(f"Analyzing: {file_path.name}")
         
+        # Check license for AI features
+        license_mgr = get_license_manager()
+        can_use_ai, license_message = license_mgr.can_use_ai_analysis()
+        
         # Step 1: Extract content
         content = self.extractor.extract(file_path)
         
@@ -411,11 +416,27 @@ class IntelligentDocumentAnalyzer:
         if not content.text_content.strip():
             return self._create_review_result(file_path, "No text content extracted (scanned image without OCR?)")
         
-        # Pass 1: Pattern-based analysis
+        # Pass 1: Pattern-based analysis (always available)
         pattern_result = self.pattern_analyzer.analyze(content)
         if pattern_result and pattern_result.confidence >= self.threshold_high:
             logger.info(f"  → Pass 1 (pattern): {pattern_result.suggested_name} ({pattern_result.confidence:.0%})")
             return pattern_result
+        
+        # Check if we can use AI (LLM) features
+        if not can_use_ai:
+            # No AI license - use pattern result if decent, otherwise review
+            if pattern_result and pattern_result.confidence >= self.threshold_medium:
+                logger.info(f"  → Pass 1 (pattern - no AI license): {pattern_result.suggested_name}")
+                return pattern_result
+            else:
+                return self._create_review_result(
+                    file_path, 
+                    f"{license_message}. Pattern confidence too low for auto-organization."
+                )
+        
+        # Consume trial use if applicable
+        if license_mgr.get_license_status()["status"] == "trial":
+            license_mgr.use_trial()
         
         # Pass 2: LLM analysis (if pattern confidence is medium, or no pattern match)
         if pattern_result and pattern_result.confidence >= self.threshold_medium:

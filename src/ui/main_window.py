@@ -31,6 +31,7 @@ class MainWindow(QMainWindow):
     rules_requested = pyqtSignal()
     duplicates_requested = pyqtSignal()
     refresh_requested = pyqtSignal()
+    license_requested = pyqtSignal()
     
     def __init__(self):
         super().__init__()
@@ -451,6 +452,13 @@ class MainWindow(QMainWindow):
         shortcuts_action.setStatusTip("View available keyboard shortcuts")
         shortcuts_action.triggered.connect(self._show_shortcuts)
         help_menu.addAction(shortcuts_action)
+        
+        help_menu.addSeparator()
+        
+        license_action = QAction("🔒 &License...", self)
+        license_action.setStatusTip("Manage your Pro license")
+        license_action.triggered.connect(self.license_requested.emit)
+        help_menu.addAction(license_action)
         
         help_menu.addSeparator()
         
