@@ -1,0 +1,80 @@
+TEST DATA MANIFEST
+================================================================================
+This file contains the ground truth for all generated test documents.
+The LLM should be able to determine the correct type from content alone.
+
+
+File: Scan_20240508_DOC0001.txt
+  Expected Type: Bank Statement
+  Source: Chase Bank
+  Date: 2024-05-08
+
+File: Scan_20241026_DOC0002.txt
+  Expected Type: Bank Statement
+  Source: Citibank
+  Date: 2024-10-26
+
+File: Scan_20250501_DOC0003.txt
+  Expected Type: Bank Statement
+  Source: Bank of America
+  Date: 2025-05-01
+
+File: Scan_20251211_DOC0001.txt
+  Expected Type: Medical Bill
+  Source: Metro General Hospital
+  Date: 2025-12-11
+
+File: Scan_20251013_DOC0002.txt
+  Expected Type: Medical Bill
+  Source: Metro General Hospital
+  Date: 2025-10-13
+
+File: Scan_20251110_DOC0003.txt
+  Expected Type: Medical Bill
+  Source: Sunrise Medical Center
+  Date: 2025-11-10
+
+File: Scan_20260128_DOC0001.txt
+  Expected Type: Utility Bill
+  Source: Arizona Public Service
+  Date: 2026-01-28
+
+File: Scan_20251219_DOC0002.txt
+  Expected Type: Utility Bill
+  Source: Cox Communications
+  Date: 2025-12-19
+
+File: Scan_20260125_DOC0003.txt
+  Expected Type: Utility Bill
+  Source: Salt River Project
+  Date: 2026-01-25
+
+File: Scan_20260216_DOC0001.txt
+  Expected Type: Tax Document (W-2)
+  Source: Summit Innovations
+  Date: 2026-02-16
+
+File: Scan_20260216_DOC0002.txt
+  Expected Type: Tax Document (W-2)
+  Source: Desert Dynamics
+  Date: 2026-02-16
+
+File: Scan_20260216_DOC0003.txt
+  Expected Type: Tax Document (W-2)
+  Source: TechCorp Solutions
+  Date: 2026-02-16
+
+File: Scan_20250824_DOC0001.txt
+  Expected Type: Credit Card Statement
+  Source: Chase Freedom
+  Date: 2025-08-24
+
+File: Scan_20260129_DOC0002.txt
+  Expected Type: Credit Card Statement
+  Source: Citi Double Cash
+  Date: 2026-01-29
+
+File: Scan_20240516_DOC0003.txt
+  Expected Type: Credit Card Statement
+  Source: Discover It
+  Date: 2024-05-16
