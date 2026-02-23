@@ -32,6 +32,7 @@ class MainWindow(QMainWindow):
     duplicates_requested = pyqtSignal()
     refresh_requested = pyqtSignal()
     license_requested = pyqtSignal()
+    multi_page_scan_requested = pyqtSignal()
     
     def __init__(self):
         super().__init__()
@@ -286,6 +287,14 @@ class MainWindow(QMainWindow):
         settings_btn.clicked.connect(self.settings_requested.emit)
         layout.addWidget(settings_btn)
         
+        # Multi-page scan button
+        multi_page_btn = QPushButton("📑 Split Multi-Page Scan")
+        multi_page_btn.setObjectName("secondaryButton")
+        multi_page_btn.setToolTip("Split a multi-page scanned PDF into separate documents (Shortcut: Ctrl+M)")
+        multi_page_btn.setStatusTip("Split scanned documents into separate files")
+        multi_page_btn.clicked.connect(self._on_multi_page_scan)
+        layout.addWidget(multi_page_btn)
+        
         layout.addStretch()
         
         return widget
@@ -440,6 +449,15 @@ class MainWindow(QMainWindow):
         duplicates_action.triggered.connect(self.duplicates_requested.emit)
         tools_menu.addAction(duplicates_action)
         
+        tools_menu.addSeparator()
+        
+        # Multi-page scan action
+        multi_page_action = QAction("📑 &Split Multi-Page Scan...", self)
+        multi_page_action.setShortcut(QKeySequence("Ctrl+M"))
+        multi_page_action.setStatusTip("Split a multi-page scanned PDF into separate documents")
+        multi_page_action.triggered.connect(self._on_multi_page_scan)
+        tools_menu.addAction(multi_page_action)
+        
         # View menu
         view_menu = menubar.addMenu("&View")
         view_menu.setToolTipsVisible(True)
@@ -531,6 +549,12 @@ class MainWindow(QMainWindow):
         self.shortcut_help.setShortcut(QKeySequence("F1"))
         self.shortcut_help.triggered.connect(self._show_shortcuts)
         self.addAction(self.shortcut_help)
+        
+        # Multi-page scan shortcut (also accessible via menu)
+        self.shortcut_multi_page = QAction("Multi-Page Scan", self)
+        self.shortcut_multi_page.setShortcut(QKeySequence("Ctrl+M"))
+        self.shortcut_multi_page.triggered.connect(self._on_multi_page_scan)
+        self.addAction(self.shortcut_multi_page)
     
     def _handle_escape(self):
         """Handle escape key press."""
@@ -555,6 +579,20 @@ class MainWindow(QMainWindow):
             self.folder_name_label.setText(f"Folder: {path.name}")
             self.directory_selected.emit(path)
             logger.info(f"Directory selected: {path}")
+    
+    def _on_multi_page_scan(self):
+        """Handle multi-page scan menu action."""
+        from PyQt6.QtWidgets import QFileDialog
+        
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select Multi-Page PDF to Split",
+            str(self.current_directory or Path.home()),
+            "PDF Files (*.pdf)"
+        )
+        
+        if file_path:
+            self.multi_page_scan_requested.emit()
     
     def _show_about(self):
         """Show about dialog with helpful information."""
@@ -585,6 +623,7 @@ class MainWindow(QMainWindow):
         <tr><td><b>Ctrl+Z</b></td><td>Undo last operation</td></tr>
         <tr><td><b>Ctrl+R</b></td><td>Organization rules</td></tr>
         <tr><td><b>Ctrl+D</b></td><td>Find duplicates</td></tr>
+        <tr><td><b>Ctrl+M</b></td><td>Split multi-page scan</td></tr>
         <tr><td><b>Ctrl+,</b></td><td>Settings</td></tr>
         <tr><td><b>F5</b></td><td>Refresh</td></tr>
         <tr><td><b>Ctrl+A</b></td><td>Select all files</td></tr>

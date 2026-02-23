@@ -112,6 +112,7 @@ class AppController:
         self.main_window.duplicates_requested.connect(self.on_duplicates_requested)
         self.main_window.refresh_requested.connect(self.on_refresh_requested)
         self.main_window.license_requested.connect(self.on_license_requested)
+        self.main_window.multi_page_scan_requested.connect(self.on_multi_page_scan)
         
         # Empty state signals
         self.empty_state_widget.action_triggered.connect(self._on_empty_state_action)
@@ -895,6 +896,96 @@ For PDF support:
                 self.main_window.set_status("🔒 Free Version - Upgrade for AI features")
         except Exception as e:
             logger.warning(f"Could not update license status: {e}")
+    
+    def on_multi_page_scan(self):
+        """Handle multi-page scan request."""
+        from PyQt6.QtWidgets import QFileDialog, QMessageBox
+        from pathlib import Path
+        
+        # Get PDF file path
+        file_path, _ = QFileDialog.getOpenFileName(
+            self.main_window,
+            "Select Multi-Page PDF to Split",
+            str(self.current_directory or Path.home()),
+            "PDF Files (*.pdf)"
+        )
+        
+        if not file_path:
+            return
+        
+        file_path = Path(file_path)
+        
+        # Check file size
+        size_mb = file_path.stat().st_size / (1024 * 1024)
+        if size_mb > 100:
+            reply = QMessageBox.question(
+                self.main_window,
+                "Large File",
+                f"This PDF is {size_mb:.1f} MB. Processing may take a while.\n\nContinue?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            if reply != QMessageBox.StandardButton.Yes:
+                return
+        
+        # Import and run multi-page processor
+        try:
+            from ..core.document_splitter import MultiPageScanProcessor
+            from PyQt6.QtWidgets import QProgressDialog
+            from PyQt6.QtCore import Qt
+            
+            self.main_window.set_status("🔍 Analyzing multi-page scan...")
+            
+            # Create processor with current LLM handler
+            processor = MultiPageScanProcessor(self.llm_handler)
+            
+            # Process the PDF
+            result = processor.process_pdf(file_path, self.main_window)
+            
+            if result.success:
+                file_list = "\n".join(f"  • {f.name}" for f in result.output_files[:10])
+                if len(result.output_files) > 10:
+                    file_list += f"\n  ... and {len(result.output_files) - 10} more"
+                
+                QMessageBox.information(
+                    self.main_window,
+                    "Success",
+                    f"✅ PDF split successfully!\n\n"
+                    f"Created {len(result.output_files)} documents:\n{file_list}\n\n"
+                    f"Output directory: {result.output_files[0].parent}"
+                )
+                self.main_window.set_status(f"✅ Split into {len(result.output_files)} documents")
+                
+                # Refresh if the output is in current directory
+                if self.current_directory and any(
+                    str(f).startswith(str(self.current_directory))
+                    for f in result.output_files
+                ):
+                    self.on_directory_selected(self.current_directory)
+            else:
+                error_msg = "\n".join(result.errors) if result.errors else "Unknown error"
+                QMessageBox.warning(
+                    self.main_window,
+                    "Processing Failed",
+                    f"Could not split PDF:\n\n{error_msg}"
+                )
+                self.main_window.set_status("❌ Split failed")
+                
+        except ImportError as e:
+            logger.error(f"Multi-page scan dependencies not available: {e}")
+            QMessageBox.warning(
+                self.main_window,
+                "Feature Not Available",
+                "Multi-page scanning requires additional dependencies.\n\n"
+                "Please install: pip install PyMuPDF"
+            )
+        except Exception as e:
+            logger.exception("Multi-page processing failed")
+            QMessageBox.critical(
+                self.main_window,
+                "Error",
+                f"An error occurred during processing:\n\n{str(e)}"
+            )
+            self.main_window.set_status("❌ Error during split")
     
     def _show_upgrade_prompt(self):
         """Show upgrade prompt if not licensed."""
